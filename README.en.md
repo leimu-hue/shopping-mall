@@ -16,11 +16,8 @@
     -- mall-order                       订单系统相关代码
     -- mall-product                     商品系统相关代码
     -- mall-ware                        库存系统相关代码
-    -- renren-security                  人人开源的框架，主要用于实现后台管理端
-        -- renren-admin                 人人开源的框架，实现管理端相关功能
-        -- renren-api                   人人开源的框架，实现第三方系统调用功能
-        -- renren-dynamic-datasource    实现多数据源管理功能
-        -- renren-generator             实现代码生成功能
+    -- ruoyi-boot                       若依开源框架，主要用来实现管理端
+        -- 项目架构参考：https://gitee.com/y_project/RuoYi-Vue
 
 ```
 技术选型方案：
