@@ -1,0 +1,34 @@
+package com.leimu.mallcoupon.service.impl;
+
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.leimu.mallcommon.service.impl.CrudServiceImpl;
+import com.leimu.mallcoupon.dao.CouponHistoryDao;
+import com.leimu.mallcoupon.dto.CouponHistoryDTO;
+import com.leimu.mallcoupon.entity.CouponHistoryEntity;
+import com.leimu.mallcoupon.service.CouponHistoryService;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+
+import java.util.Map;
+
+/**
+ * 优惠券领取历史记录
+ *
+ * @author hhq 2627492139@qq.com
+ * @since 1.0.0 2025-06-16
+ */
+@Service
+public class CouponHistoryServiceImpl extends CrudServiceImpl<CouponHistoryDao, CouponHistoryEntity, CouponHistoryDTO> implements CouponHistoryService {
+
+    @Override
+    public QueryWrapper<CouponHistoryEntity> getWrapper(Map<String, Object> params) {
+        String id = (String) params.get("id");
+
+        QueryWrapper<CouponHistoryEntity> wrapper = new QueryWrapper<>();
+        wrapper.eq(StringUtils.isNotBlank(id), "id", id);
+
+        return wrapper;
+    }
+
+
+}

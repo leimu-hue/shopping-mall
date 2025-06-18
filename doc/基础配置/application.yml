@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: mall-coupon
+  profiles:
+    active: dev
+server:
+  port: 8101

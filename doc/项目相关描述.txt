@@ -1,0 +1,5 @@
+mall_oms：订单系统数据库
+mall_pms：商品系统数据库
+mall_ums：用户系统数据库
+mall_sms：营销系统数据库
+mall_wms：库存系统数据库
