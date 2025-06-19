@@ -28,7 +28,7 @@ import java.util.Map;
 @Configuration
 @EnableWebSecurity
 @ConditionalOnMissingBean(
-        name = {"securityWebConfig"}
+        name = {"securityWebConfig", "ruoYiSecurityConfig"}
 )
 public class SecurityConfig {
 

@@ -1,6 +1,7 @@
 package com.leimu.mallcommon.utils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -11,6 +12,9 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
+@ConditionalOnMissingBean(
+        name = {"redisTemplate"}
+)
 public class RedisUtil {
 
     private final RedisTemplate<String, Object> redisTemplate;

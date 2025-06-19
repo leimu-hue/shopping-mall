@@ -10,6 +10,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
@@ -35,7 +36,7 @@ public class RateLimiterAspect
     private RedisScript<Long> limitScript;
 
     @Autowired
-    public void setRedisTemplate1(RedisTemplate<Object, Object> redisTemplate)
+    public void setRedisTemplate(RedisTemplate<Object, Object> redisTemplate)
     {
         this.redisTemplate = redisTemplate;
     }
@@ -57,7 +58,7 @@ public class RateLimiterAspect
         try
         {
             Long number = redisTemplate.execute(limitScript, keys, count, time);
-            if (StringUtils.isNull(number) || number.intValue() > count)
+            if (number.intValue() > count)
             {
                 throw new ServiceException("访问过于频繁，请稍候再试");
             }
@@ -75,7 +76,7 @@ public class RateLimiterAspect
 
     public String getCombineKey(RateLimiter rateLimiter, JoinPoint point)
     {
-        StringBuffer stringBuffer = new StringBuffer(rateLimiter.key());
+        StringBuilder stringBuffer = new StringBuilder(rateLimiter.key());
         if (rateLimiter.limitType() == LimitType.IP)
         {
             stringBuffer.append(IpUtils.getIpAddr()).append("-");

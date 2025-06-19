@@ -1,5 +1,6 @@
 package com.ruoyi.framework.config;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -11,12 +12,12 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * redis配置
- * 
+ *
  * @author ruoyi
  */
 @Configuration
 @EnableCaching
-public class RedisConfig extends CachingConfigurerSupport
+public class RedisConfig
 {
     @Bean
     @SuppressWarnings(value = { "unchecked", "rawtypes" })

@@ -6,6 +6,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
+
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.RegExUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
@@ -30,6 +33,8 @@ public class PermitAllUrlProperties implements InitializingBean, ApplicationCont
 
     private ApplicationContext applicationContext;
 
+    @Setter
+    @Getter
     private List<String> urls = new ArrayList<>();
 
     public String ASTERISK = "*";
@@ -37,7 +42,7 @@ public class PermitAllUrlProperties implements InitializingBean, ApplicationCont
     @Override
     public void afterPropertiesSet()
     {
-        RequestMappingHandlerMapping mapping = applicationContext.getBean(RequestMappingHandlerMapping.class);
+        RequestMappingHandlerMapping mapping = applicationContext.getBean("requestMappingHandlerMapping", RequestMappingHandlerMapping.class);
         Map<RequestMappingInfo, HandlerMethod> map = mapping.getHandlerMethods();
 
         map.keySet().forEach(info -> {
@@ -61,13 +66,4 @@ public class PermitAllUrlProperties implements InitializingBean, ApplicationCont
         this.applicationContext = context;
     }
 
-    public List<String> getUrls()
-    {
-        return urls;
-    }
-
-    public void setUrls(List<String> urls)
-    {
-        this.urls = urls;
-    }
 }

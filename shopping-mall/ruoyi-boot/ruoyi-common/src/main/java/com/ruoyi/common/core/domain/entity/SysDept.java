@@ -2,10 +2,12 @@ package com.ruoyi.common.core.domain.entity;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
+import lombok.Getter;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import com.ruoyi.common.core.domain.BaseEntity;
@@ -20,12 +22,15 @@ public class SysDept extends BaseEntity
     private static final long serialVersionUID = 1L;
 
     /** 部门ID */
+    @Getter
     private Long deptId;
 
     /** 父部门ID */
+    @Getter
     private Long parentId;
 
     /** 祖级列表 */
+    @Getter
     private String ancestors;
 
     /** 部门名称 */
@@ -35,6 +40,7 @@ public class SysDept extends BaseEntity
     private Integer orderNum;
 
     /** 负责人 */
+    @Getter
     private String leader;
 
     /** 联系电话 */
@@ -44,40 +50,28 @@ public class SysDept extends BaseEntity
     private String email;
 
     /** 部门状态:0正常,1停用 */
+    @Getter
     private String status;
 
     /** 删除标志（0代表存在 2代表删除） */
+    @Getter
     private String delFlag;
 
     /** 父部门名称 */
     private String parentName;
     
     /** 子部门 */
+    @Getter
     private List<SysDept> children = new ArrayList<SysDept>();
-
-    public Long getDeptId()
-    {
-        return deptId;
-    }
 
     public void setDeptId(Long deptId)
     {
         this.deptId = deptId;
     }
 
-    public Long getParentId()
-    {
-        return parentId;
-    }
-
     public void setParentId(Long parentId)
     {
         this.parentId = parentId;
-    }
-
-    public String getAncestors()
-    {
-        return ancestors;
     }
 
     public void setAncestors(String ancestors)
@@ -108,11 +102,6 @@ public class SysDept extends BaseEntity
         this.orderNum = orderNum;
     }
 
-    public String getLeader()
-    {
-        return leader;
-    }
-
     public void setLeader(String leader)
     {
         this.leader = leader;
@@ -141,19 +130,9 @@ public class SysDept extends BaseEntity
         this.email = email;
     }
 
-    public String getStatus()
-    {
-        return status;
-    }
-
     public void setStatus(String status)
     {
         this.status = status;
-    }
-
-    public String getDelFlag()
-    {
-        return delFlag;
     }
 
     public void setDelFlag(String delFlag)
@@ -169,11 +148,6 @@ public class SysDept extends BaseEntity
     public void setParentName(String parentName)
     {
         this.parentName = parentName;
-    }
-
-    public List<SysDept> getChildren()
-    {
-        return children;
     }
 
     public void setChildren(List<SysDept> children)
