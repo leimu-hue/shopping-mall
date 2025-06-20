@@ -8,6 +8,8 @@ class MallCouponApplicationTests {
 
     @Test
     void contextLoads() {
+        Object o = "wwww";
+        System.out.println(o.toString());
     }
 
 }
