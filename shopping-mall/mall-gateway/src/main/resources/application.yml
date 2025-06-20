@@ -1,0 +1,24 @@
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: mall-product
+              uri: lb://mall-product
+              predicates:
+                - Path=/api/mall-product/**
+              filters:
+                - StripPrefix=2
+            - id: mall-admin
+              uri: lb://mall-admin
+              predicates:
+                - Path=/api/mall-admin/**
+              filters:
+                - StripPrefix=1
+          discovery:
+            locator:
+              enabled: true
+server:
+  servlet:
+    context-path: /api

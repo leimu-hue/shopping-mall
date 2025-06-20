@@ -5,3 +5,5 @@ spring:
     active: dev
 server:
   port: 8102
+  servlet:
+    context-path: mall-member

@@ -6,4 +6,4 @@ spring:
 server:
   port: 8104
   servlet:
-    context-path: /product-service
+    context-path: /mall-product

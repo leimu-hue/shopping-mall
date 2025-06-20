@@ -29,7 +29,8 @@ public class SecurityWebConfig {
                         "/webjars/**",
                         "/v3/api-docs/**",
                         "/swagger-ui/**",
-                        "/swagger-resources/**").permitAll());
+                        "/swagger-resources/**",
+                        "/api/**").permitAll());
         return http.build();
     }
 

@@ -19,7 +19,7 @@ server:
   port: 8111
   servlet:
     # 应用的访问路径
-    context-path: /
+    context-path: /mall-admin
   tomcat:
     # tomcat的URI编码
     uri-encoding: UTF-8
@@ -78,7 +78,11 @@ spring:
           max-idle: 20
           min-idle: 5
           max-wait: 5s
-#      password:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        ip: 127.0.0.1
 
 # token配置
 token:
