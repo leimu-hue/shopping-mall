@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import {getMenuList} from "@/api/product/category/index"
+// import {getMenuList} from "@/api/product/category/index"
 
 export default {
     data() {
@@ -18,17 +18,17 @@ export default {
         };
     },
     created() {
-        this.getMenu();
+        // this.getMenu();
     },
     methods: {
         handleNodeClick(data) {
             console.log(data);
         },
-        getMenu() {
-            getMenuList({}).then((response) => {
-                console.log(response);
-            })
-        }
+        // getMenu() {
+        //     getMenuList({}).then((response) => {
+        //         console.log(response);
+        //     })
+        // }
     }
 };
 </script>

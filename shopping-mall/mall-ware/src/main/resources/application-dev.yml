@@ -60,7 +60,7 @@ spring:
   # 配置redis
   data:
     redis:
-      host: 192.168.147.130
+      host: localhost
       port: 6379
       connect-timeout: 10s
       lettuce:
@@ -70,7 +70,7 @@ spring:
           max-idle: 20
           min-idle: 5
           max-wait: 5s
-#      password: Admin123!
+      password: Admin123!
   # 为openfeign添加hc5连接池支持
   cloud:
     openfeign:

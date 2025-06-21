@@ -9,11 +9,29 @@ spring:
               predicates:
                 - Path=/api/mall-product/**
               filters:
-                - StripPrefix=2
+                - StripPrefix=1
             - id: mall-admin
               uri: lb://mall-admin
               predicates:
                 - Path=/api/mall-admin/**
+              filters:
+                - StripPrefix=1
+            - id: mall-coupon
+              uri: lb://mall-coupon
+              predicates:
+                - Path=/api/mall-coupon/**
+              filters:
+                - StripPrefix=1
+            - id: mall-member
+              uri: lb://mall-member
+              predicates:
+                - Path=/api/mall-member/**
+              filters:
+                - StripPrefix=1
+            - id: mall-order
+              uri: lb://mall-order
+              predicates:
+                - Path=/api/mall-order/**
               filters:
                 - StripPrefix=1
           discovery:
@@ -22,3 +40,4 @@ spring:
 server:
   servlet:
     context-path: /api
+  port: 8110

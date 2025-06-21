@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Getter
 public class SystemPropertyConfig {
 
-    @Value("${value.test}")
+    @Value("${value.test:}")
     private String valueTest;
 
 }
