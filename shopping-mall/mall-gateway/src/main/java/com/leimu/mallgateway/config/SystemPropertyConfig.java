@@ -14,9 +14,4 @@ public class SystemPropertyConfig {
     @Value("${value.test:}")
     private String valueTest;
 
-    @PostConstruct
-    public void init() {
-        System.out.printf("System property config: valueTest=%s\n", valueTest);
-    }
-
 }

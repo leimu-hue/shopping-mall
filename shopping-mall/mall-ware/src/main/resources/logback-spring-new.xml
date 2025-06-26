@@ -9,10 +9,11 @@
      <!--<property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}/}spring.log}"/>-->
      <!--<property name="LOG_FILE" value="${LOG_FILE}"/>-->
     <springProperty scope="context" name="LOG_FILE" source="server.resource" defaultValue="../logs"/>
+    <property name="log.pattern" value="%X{traceId:-},%X{spanId:-} %d{HH:mm:ss.SSS} [%thread] %-5level %logger{20} - [%method,%line] - %msg%n"/>
      <!--1. 输出到控制台-->
      <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
          <encoder>
-             <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{5} [%line] - %msg%n</pattern>
+             <pattern>${log.pattern}</pattern>
          </encoder>
      </appender>
 
@@ -30,7 +31,7 @@
          </filter>
          <!--日志文档输出格式-->
          <encoder>
-             <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} [%line] - %msg%n</pattern>
+             <pattern>${log.pattern}</pattern>
          </encoder>
          <!-- 日志记录器的滚动策略，按日期，按大小记录 -->
          <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
@@ -60,7 +61,7 @@
         </filter>
         <!--日志文档输出格式-->
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} [%line] - %msg%n</pattern>
+            <pattern>${log.pattern}</pattern>
         </encoder>
         <!-- 日志记录器的滚动策略，按日期，按大小记录 -->
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
@@ -90,7 +91,7 @@
         </filter>
         <!--日志文档输出格式-->
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} [%line] - %msg%n</pattern>
+            <pattern>${log.pattern}</pattern>
         </encoder>
         <!-- 日志记录器的滚动策略，按日期，按大小记录 -->
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
@@ -120,7 +121,7 @@
         </filter>
         <!--日志文档输出格式-->
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} [%line] - %msg%n</pattern>
+            <pattern>${log.pattern}</pattern>
         </encoder>
         <!-- 日志记录器的滚动策略，按日期，按大小记录 -->
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">

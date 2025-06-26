@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -24,6 +25,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/product/aagr")
 @Tag(name = "依赖关系数据")
+@Slf4j
 public class AttrAttrGroupRelationController {
 
     private final AttrAttrGroupRelationService attrAttrGroupRelationService;
@@ -41,6 +43,7 @@ public class AttrAttrGroupRelationController {
             @Parameter(name = Constant.ORDER, description = "排序方式，可选值(asc、desc)", in = ParameterIn.QUERY, ref = "String")
     })
     public Result<PageData<AttrAttrGroupRelationDTO>> page(@Parameter(hidden = true) @RequestParam Map<String, Object> params) {
+        log.info("this is a new");
         PageData<AttrAttrGroupRelationDTO> page = attrAttrGroupRelationService.page(params);
 
         return new Result<PageData<AttrAttrGroupRelationDTO>>().ok(page);

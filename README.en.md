@@ -43,7 +43,7 @@
 | SpringCloud OpenFeign        | 声明式HTTP客户端 |
 | SpringCloud Alibaba Sentinel | 服务容错框架     |
 | SpringCloud Gateway          | API网关      |
-| SpringCloud Sleuth           | 调用链监控      |
+| Micrometer + Zipkin          | 调用链监控      |
 | SpringCloud Alibaba Seata    | 分布式事务解决方案  |
 | Redis                        | 开源的内存数据库   |
 | MySQL                        | 开源的关系型数据库  |
