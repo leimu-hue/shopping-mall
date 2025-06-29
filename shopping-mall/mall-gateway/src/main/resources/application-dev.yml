@@ -12,7 +12,7 @@ spring:
           max-idle: 20
           min-idle: 5
           max-wait: 5s
-      password: Admin123!
+#      password: Admin123!
 
   # 为openfeign添加hc5连接池支持
   cloud:
@@ -26,12 +26,8 @@ spring:
 
 logging:
   config: classpath:logback-spring-new.xml
-  level:
-    com:
-      alibaba:
-        nacos: DEBUG
 
-mybatis-plus:
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-    map-underscore-to-camel-case: true
+management:
+  tracing:
+    sampling:
+      probability: 1.0

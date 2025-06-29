@@ -123,3 +123,8 @@ xss:
   excludes: /system/notice
   # 匹配链接
   urlPatterns: /system/*,/monitor/*,/tool/*
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
