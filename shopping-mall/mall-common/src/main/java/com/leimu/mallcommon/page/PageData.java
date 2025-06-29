@@ -12,7 +12,11 @@ public class PageData<T> implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private int total;
+    private long total;
+
+    private int pageNum;
+
+    private int pageSize;
 
     private List<T> list;
 
@@ -24,5 +28,12 @@ public class PageData<T> implements Serializable {
     public PageData(List<T> list, long total) {
         this.list = list;
         this.total = (int) total;
+    }
+
+    public PageData(long total, int pageNum, int pageSize, List<T> list) {
+        this.total = total;
+        this.pageNum = pageNum;
+        this.pageSize = pageSize;
+        this.list = list;
     }
 }

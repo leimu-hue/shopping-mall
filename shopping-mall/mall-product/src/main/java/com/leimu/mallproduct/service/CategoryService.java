@@ -1,10 +1,13 @@
 package com.leimu.mallproduct.service;
 
+import com.leimu.mallcommon.page.PageData;
 import com.leimu.mallcommon.service.CrudService;
 import com.leimu.mallproduct.dto.CategoryDTO;
+import com.leimu.mallproduct.dto.CategoryMergeParentDTO;
 import com.leimu.mallproduct.entity.CategoryEntity;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 商品三级分类
@@ -15,5 +18,9 @@ import java.util.List;
 public interface CategoryService extends CrudService<CategoryEntity, CategoryDTO> {
 
     List<CategoryDTO> getAllListByTree();
+
+    PageData<CategoryMergeParentDTO> getAllListByPage(Map<String, Object> params);
+
+    Map<Long, String> queryCatIdToNameMap();
 
 }

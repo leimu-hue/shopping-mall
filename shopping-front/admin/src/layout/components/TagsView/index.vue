@@ -218,7 +218,7 @@ function closeAllTags(view) {
 
 function toLastView(visitedViews, view) {
   const latestView = visitedViews.slice(-1)[0]
-  if (latestView) {
+  if (latestView && latestView.fullPath) {
     router.push(latestView.fullPath)
   } else {
     // now the default is to redirect to the home page if there is no tags-view,

@@ -70,7 +70,6 @@
         <module>ruoyi-common</module>
     </modules>
 
-
     <build>
         <plugins>
             <plugin>

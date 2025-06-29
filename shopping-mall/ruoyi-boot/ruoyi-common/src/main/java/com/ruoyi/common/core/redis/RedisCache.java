@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class RedisCache {
     @Autowired
-    public RedisTemplate redisTemplate;
+    public RedisTemplate<String, Object> redisTemplate;
 
     /**
      * 缓存基本的对象，Integer、String、实体类等
@@ -93,8 +93,8 @@ public class RedisCache {
      * @return 缓存键值对应的数据
      */
     public <T> T getCacheObject(final String key) {
-        ValueOperations<String, T> operation = redisTemplate.opsForValue();
-        return operation.get(key);
+        Object value = redisTemplate.opsForValue().get(key);
+        return (T) value;
     }
 
     /**
@@ -135,7 +135,7 @@ public class RedisCache {
      * @return 缓存键值对应的数据
      */
     public <T> List<T> getCacheList(final String key) {
-        return redisTemplate.opsForList().range(key, 0, -1);
+        return (List<T>) redisTemplate.opsForList().range(key, 0, -1);
     }
 
     /**
@@ -146,12 +146,12 @@ public class RedisCache {
      * @return 缓存数据的对象
      */
     public <T> BoundSetOperations<String, T> setCacheSet(final String key, final Set<T> dataSet) {
-        BoundSetOperations<String, T> setOperation = redisTemplate.boundSetOps(key);
+        BoundSetOperations<String, Object> setOperation = redisTemplate.boundSetOps(key);
         Iterator<T> it = dataSet.iterator();
         while (it.hasNext()) {
             setOperation.add(it.next());
         }
-        return setOperation;
+        return (BoundSetOperations<String, T>) setOperation;
     }
 
     /**
@@ -161,7 +161,7 @@ public class RedisCache {
      * @return
      */
     public <T> Set<T> getCacheSet(final String key) {
-        return redisTemplate.opsForSet().members(key);
+        return (Set<T>) redisTemplate.opsForSet().members(key);
     }
 
     /**
@@ -174,16 +174,6 @@ public class RedisCache {
         if (dataMap != null) {
             redisTemplate.opsForHash().putAll(key, dataMap);
         }
-    }
-
-    /**
-     * 获得缓存的Map
-     *
-     * @param key
-     * @return
-     */
-    public <T> Map<String, T> getCacheMap(final String key) {
-        return redisTemplate.opsForHash().entries(key);
     }
 
     /**
@@ -217,7 +207,7 @@ public class RedisCache {
      * @return Hash对象集合
      */
     public <T> List<T> getMultiCacheMapValue(final String key, final Collection<Object> hKeys) {
-        return redisTemplate.opsForHash().multiGet(key, hKeys);
+        return (List<T>) redisTemplate.opsForHash().multiGet(key, hKeys);
     }
 
     /**

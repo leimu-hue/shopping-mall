@@ -54,4 +54,6 @@ public class CategoryEntity {
      * 商品数量
      */
 	private Integer productCount;
+
+    private Date createTime;
 }

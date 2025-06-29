@@ -16,14 +16,6 @@
     </description>
 
     <dependencies>
-
-        <!-- spring-boot-devtools -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <optional>true</optional> <!-- 表示依赖不会传递 -->
-        </dependency>
-
         <!-- 核心模块-->
         <dependency>
             <groupId>com.ruoyi</groupId>
@@ -41,7 +33,6 @@
             <groupId>com.ruoyi</groupId>
             <artifactId>ruoyi-generator</artifactId>
         </dependency>
-
     </dependencies>
 
     <build>

@@ -2,33 +2,18 @@ package com.leimu.mallproduct.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.leimu.mallproduct.entity.CategoryEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.SchemaProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.beans.BeanUtils;
 
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
-
-/**
- * 商品三级分类
- *
- * @author hhq 2627492139@qq.com
- * @since 1.0.0 2025-06-15
- */
 @Data
-@Schema(name = "商品三级分类")
+@Schema(name = "商品三级分类(包含上级商品信息)")
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class CategoryDTO implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 1L;
+public class CategoryMergeParentDTO {
 
     @SchemaProperty(name = "分类id")
     private Long catId;
@@ -38,6 +23,9 @@ public class CategoryDTO implements Serializable {
 
     @SchemaProperty(name = "父分类id")
     private Long parentCid;
+
+    @SchemaProperty(name = "父分类名称")
+    private String parentName;
 
     @SchemaProperty(name = "层级")
     private Integer catLevel;
@@ -59,22 +47,5 @@ public class CategoryDTO implements Serializable {
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date createTime;
-
-    @SchemaProperty(name = "二级商品列表")
-    private List<CategoryDTO> children = new ArrayList<>();
-
-    public CategoryDTO(CategoryEntity categoryEntity) {
-        BeanUtils.copyProperties(categoryEntity, this);
-    }
-
-    public CategoryDTO createDefault() {
-        this.catId = 0L;
-        this.name = "全部分类";
-        this.sort = 0;
-        this.parentCid = 0L;
-        this.showStatus = 1;
-        this.children = new ArrayList<>();
-        return this;
-    }
 
 }
