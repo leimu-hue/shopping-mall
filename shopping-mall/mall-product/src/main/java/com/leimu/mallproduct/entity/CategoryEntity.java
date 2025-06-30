@@ -3,7 +3,9 @@ package com.leimu.mallproduct.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.leimu.mallproduct.post.CategoryPost;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
@@ -15,6 +17,7 @@ import java.util.Date;
  */
 @Data
 @TableName("pms_category")
+@NoArgsConstructor
 public class CategoryEntity {
 
     /**
@@ -56,4 +59,17 @@ public class CategoryEntity {
 	private Integer productCount;
 
     private Date createTime;
+
+    public CategoryEntity(CategoryPost categoryPost) {
+        this.name = categoryPost.getName();
+        this.parentCid = categoryPost.getParentCid();
+        this.catLevel = categoryPost.getCatLevel();
+        this.showStatus = categoryPost.getShowStatus();
+        this.sort = categoryPost.getSort();
+        this.icon = categoryPost.getIcon();
+        this.productUnit = null;
+        this.productCount = 0;
+        this.createTime = new Date();
+    }
+
 }

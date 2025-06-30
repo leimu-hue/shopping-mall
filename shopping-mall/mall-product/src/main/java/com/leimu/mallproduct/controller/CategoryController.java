@@ -5,6 +5,7 @@ import com.leimu.mallcommon.page.PageData;
 import com.leimu.mallcommon.show.Result;
 import com.leimu.mallproduct.dto.CategoryDTO;
 import com.leimu.mallproduct.dto.CategoryMergeParentDTO;
+import com.leimu.mallproduct.post.CategoryPost;
 import com.leimu.mallproduct.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -53,6 +54,21 @@ public class CategoryController {
     @GetMapping("/list/tree")
     public Result<List<CategoryDTO>> queryAllListByTree() {
         return new Result<List<CategoryDTO>>().ok(categoryService.getAllListByTree());
+    }
+
+    @DeleteMapping("/delete")
+    public Result<Integer> deleteByIds(@RequestBody List<Long> ids) {
+        return new Result<Integer>().ok(categoryService.deleteByIds(ids));
+    }
+
+    @PostMapping("/add")
+    public Result<String> addCategory(@RequestBody CategoryPost categoryPost) {
+        return categoryService.addCategory(categoryPost);
+    }
+
+    @PutMapping("update")
+    public Result<String> updateCategory(@RequestBody CategoryPost categoryPost) {
+        return categoryService.updateCategory(categoryPost);
     }
 
 }

@@ -226,3 +226,9 @@ export function getNormalPath(p) {
 export function blobValidate(data) {
   return data.type !== 'application/json'
 }
+
+export function formatDate(dateStr) {
+    if (!dateStr) return ''
+    const date = new Date(dateStr)
+    return date.toLocaleDateString()
+}

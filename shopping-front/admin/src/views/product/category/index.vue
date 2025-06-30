@@ -50,7 +50,7 @@
             </el-table-column>
             <el-table-column label="创建时间" align="center" prop="createTime" width="180">
                 <template #default="scope">
-                    <span>{{ formatDate(scope.row.createTime) }}</span>
+                    <span>{{ formatDate(scope.row.createTime) || "--" }}</span>
                 </template>
             </el-table-column>
             <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="200">
@@ -101,6 +101,7 @@
 import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { listCategory, listCategoryTree, delCategory, addCategory, updateCategory } from '@/api/product/category'
+import { formatDate } from "@/utils/ruoyi.js"
 
 const categoryList = ref([])
 const open = ref(false)
@@ -147,16 +148,9 @@ const categoryTreeData = ref([]);
 const getCategoryTreeData = () => {
     listCategoryTree().then(res => {
         categoryTreeData.value = res.data;
-    }).catch(err => {
+    }).catch(_err => {
         ElMessage.error('获取分类树形数据失败, 请稍后重试')
     })
-}
-
-// 格式化日期
-const formatDate = (dateStr) => {
-    if (!dateStr) return ''
-    const date = new Date(dateStr)
-    return date.toLocaleDateString()
 }
 
 /** 查询商品分类列表 */

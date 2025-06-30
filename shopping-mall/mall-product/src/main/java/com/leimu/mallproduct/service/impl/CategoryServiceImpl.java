@@ -1,26 +1,29 @@
 package com.leimu.mallproduct.service.impl;
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.leimu.mallcommon.constant.Constant;
 import com.leimu.mallcommon.constant.ConstantRedis;
+import com.leimu.mallcommon.exception.ErrorCode;
 import com.leimu.mallcommon.page.PageData;
 import com.leimu.mallcommon.service.impl.CrudServiceImpl;
-import com.leimu.mallcommon.utils.RedisUtil;
+import com.leimu.mallcommon.show.Result;
 import com.leimu.mallproduct.dao.CategoryDao;
 import com.leimu.mallproduct.dto.CategoryDTO;
 import com.leimu.mallproduct.dto.CategoryMergeParentDTO;
 import com.leimu.mallproduct.entity.CategoryEntity;
 import com.leimu.mallproduct.enums.CategoryShowStatusEnum;
+import com.leimu.mallproduct.post.CategoryPost;
 import com.leimu.mallproduct.service.CategoryService;
-import jodd.bean.BeanUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.redisson.api.RMap;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -34,10 +37,10 @@ import java.util.stream.Collectors;
 @Service
 public class CategoryServiceImpl extends CrudServiceImpl<CategoryDao, CategoryEntity, CategoryDTO> implements CategoryService {
 
-    private final RedisUtil redisUtil;
+    private final RedissonClient redissonClient;
 
-    public CategoryServiceImpl(RedisUtil redisUtil) {
-        this.redisUtil = redisUtil;
+    public CategoryServiceImpl(RedissonClient redissonClient) {
+        this.redissonClient = redissonClient;
     }
 
     @Override
@@ -80,10 +83,15 @@ public class CategoryServiceImpl extends CrudServiceImpl<CategoryDao, CategoryEn
         int page = Integer.parseInt(Optional.ofNullable((String) params.get(Constant.PAGE)).orElse("1"));
         int limit = Integer.parseInt(Optional.ofNullable((String) params.get(Constant.LIMIT)).orElse("10"));
         String categoryName = Optional.ofNullable((String) params.get("categoryName")).orElse("");
+        int status = Integer.parseInt(Optional.ofNullable((String) params.get("status")).orElse("-1"));
         // 开始查询数据信息
         QueryWrapper<CategoryEntity> wrapper = new QueryWrapper<>();
         if (StringUtils.isNotBlank(categoryName)) {
             wrapper.like("name", categoryName);
+        }
+        if (CategoryShowStatusEnum.SHOW.getValue() == status
+                || CategoryShowStatusEnum.NO_SHOW.getValue() == status) {
+            wrapper.eq("show_status", status);
         }
         IPage<CategoryEntity> pageData = new Page<>(page, limit);
         List<CategoryEntity> categoryEntities = baseDao.selectList(pageData, wrapper);
@@ -100,28 +108,96 @@ public class CategoryServiceImpl extends CrudServiceImpl<CategoryDao, CategoryEn
 
     @Override
     public Map<Long, String> queryCatIdToNameMap() {
-        Map<Long, String> catIdToName = (Map<Long, String>) redisUtil.get(ConstantRedis.PRODUCT_CATEGORY_ID_TO_NAME_MAP);
-        if (Objects.nonNull(catIdToName)) {
-            return catIdToName;
+        Map<Long, String> result = new HashMap<>();
+        RMap<Long, String> map = redissonClient.getMap(ConstantRedis.PRODUCT_CATEGORY_ID_TO_NAME_MAP);
+        map.readAllMapAsync().thenAcceptAsync(result::putAll);
+        if (!result.isEmpty()) {
+            return result;
         }
-
         QueryWrapper<CategoryEntity> wrapper = new QueryWrapper<>();
         wrapper.select("cat_id", "name");
         // 首先查出商品分类
         List<CategoryEntity> categoryEntities = baseDao.selectList(wrapper);
-        catIdToName = categoryEntities.stream().collect(Collectors.toMap(CategoryEntity::getCatId,
+        result = categoryEntities.stream().collect(Collectors.toMap(CategoryEntity::getCatId,
                 CategoryEntity::getName));
-        redisUtil.set(ConstantRedis.PRODUCT_CATEGORY_ID_TO_NAME_MAP, catIdToName);
-        return catIdToName;
+        // 插入一个无效数据
+        if (!result.containsKey(0L)) {
+            result.put(0L, "顶级分类");
+        }
+        map.putAll(result);
+        return result;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int deleteByIds(List<Long> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return 0;
+        }
+        // 判断，如果父分类下存在子分类，就不允许删除
+        // ...
+        int result = baseDao.deleteByIds(ids);
+        if (result > 0) {
+            RMap<Long, String> map = redissonClient.getMap(ConstantRedis.PRODUCT_CATEGORY_ID_TO_NAME_MAP);
+            map.fastRemove(ids.toArray(new Long[0]));
+        }
+        return result;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<String> addCategory(CategoryPost categoryPost) {
+        Map<Long, String> result = new HashMap<>();
+        RMap<Long, String> map = redissonClient.getMap(ConstantRedis.PRODUCT_CATEGORY_ID_TO_NAME_MAP);
+        map.readAllMapAsync().thenAcceptAsync(result::putAll);
+        Set<String> names = new HashSet<>(result.values());
+        if (names.contains(categoryPost.getName())) {
+            return new Result<String>().error(ErrorCode.PARAMETER_ERROR, "重复名称");
+        }
+        if (!result.containsKey(categoryPost.getParentCid())) {
+            return new Result<String>().error(ErrorCode.PARAMETER_ERROR, "无效父类信息");
+        }
+        CategoryEntity categoryEntity = new CategoryEntity(categoryPost);
+        int insert = baseDao.insert(categoryEntity);
+        if (insert > 0) {
+            return new Result<String>().ok(null);
+        } else {
+            return new Result<String>().error("新增失败, 请稍后再试");
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Result<String> updateCategory(CategoryPost categoryPost) {
+        if (Objects.isNull(categoryPost.getCatId())) {
+            return new Result<String>().error(ErrorCode.PARAMETER_ERROR, "无效信息");
+        }
+        Map<Long, String> result = new HashMap<>();
+        RMap<Long, String> map = redissonClient.getMap(ConstantRedis.PRODUCT_CATEGORY_ID_TO_NAME_MAP);
+        map.readAllMapAsync().thenAcceptAsync(result::putAll);
+        Set<String> names = new HashSet<>(result.values());
+        names.remove(result.get(categoryPost.getCatId()));
+        if (names.contains(categoryPost.getName())) {
+            return new Result<String>().error(ErrorCode.PARAMETER_ERROR, "重复名称");
+        }
+        if (!result.containsKey(categoryPost.getParentCid())) {
+            return new Result<String>().error(ErrorCode.PARAMETER_ERROR, "无效父类信息");
+        }
+        CategoryEntity categoryEntity = new CategoryEntity(categoryPost);
+        categoryEntity.setCatId(categoryPost.getCatId());
+        int updateCount = baseDao.updateById(categoryEntity);
+        if (updateCount > 0) {
+            return new Result<String>().ok(null);
+        } else {
+            return new Result<String>().error("修改失败, 请稍后再试");
+        }
     }
 
     @Override
     public QueryWrapper<CategoryEntity> getWrapper(Map<String, Object> params) {
         String id = (String) params.get("id");
-
         QueryWrapper<CategoryEntity> wrapper = new QueryWrapper<>();
         wrapper.eq(StringUtils.isNotBlank(id), "id", id);
-
         return wrapper;
     }
 

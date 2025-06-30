@@ -5,6 +5,9 @@ package com.leimu.mallcommon.constant;
  */
 public interface ConstantRedis {
 
+    /**
+     * 采取hashmap方式存储, key + categoryId = value
+     */
     String PRODUCT_CATEGORY_ID_TO_NAME_MAP = "PRODUCT_CATEGORY_ID_TO_NAME_MAP";
 
 }
