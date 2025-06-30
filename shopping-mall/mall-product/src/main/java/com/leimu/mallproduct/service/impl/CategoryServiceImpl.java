@@ -1,6 +1,5 @@
 package com.leimu.mallproduct.service.impl;
 
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -26,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
+import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
 /**
@@ -55,7 +55,7 @@ public class CategoryServiceImpl extends CrudServiceImpl<CategoryDao, CategoryEn
             return Integer.compare(first, second);
         });
         // 开始组装父子结构
-        Map<Long, CategoryDTO> catIdToValue = categoryEntities.stream().map(CategoryDTO::new)
+        Map<String, CategoryDTO> catIdToValue = categoryEntities.stream().map(CategoryDTO::new)
                 .filter(t -> Objects.equals(t.getShowStatus(), CategoryShowStatusEnum.SHOW.getValue()))
                 .collect(Collectors.toMap(CategoryDTO::getCatId, t -> t));
 
@@ -63,18 +63,18 @@ public class CategoryServiceImpl extends CrudServiceImpl<CategoryDao, CategoryEn
         for (CategoryEntity categoryEntity : categoryEntities) {
             // 说明是一级菜单
             if (Objects.equals(categoryEntity.getParentCid(), 0L)) {
-                if (catIdToValue.containsKey(categoryEntity.getCatId())) {
-                    parentValue.add(catIdToValue.get(categoryEntity.getCatId()));
+                if (catIdToValue.containsKey(categoryEntity.getCatId().toString())) {
+                    parentValue.add(catIdToValue.get(categoryEntity.getCatId().toString()));
                 }
                 continue;
             }
-            CategoryDTO categoryDTO = catIdToValue.get(categoryEntity.getParentCid());
+            CategoryDTO categoryDTO = catIdToValue.get(categoryEntity.getParentCid().toString());
             if (Objects.nonNull(categoryDTO) && catIdToValue.containsKey(categoryDTO.getCatId())) {
-                categoryDTO.getChildren().add(catIdToValue.get(categoryEntity.getCatId()));
+                categoryDTO.getChildren().add(catIdToValue.get(categoryEntity.getCatId().toString()));
             }
         }
         CategoryDTO parent = new CategoryDTO().createDefault();
-        parent.getChildren().add(parent);
+        parent.setChildren(parentValue);
         return Collections.singletonList(parent);
     }
 
@@ -93,6 +93,7 @@ public class CategoryServiceImpl extends CrudServiceImpl<CategoryDao, CategoryEn
                 || CategoryShowStatusEnum.NO_SHOW.getValue() == status) {
             wrapper.eq("show_status", status);
         }
+        wrapper.orderByAsc("parent_cid", "sort");
         IPage<CategoryEntity> pageData = new Page<>(page, limit);
         List<CategoryEntity> categoryEntities = baseDao.selectList(pageData, wrapper);
         // 获取id对应名称信息
@@ -101,6 +102,8 @@ public class CategoryServiceImpl extends CrudServiceImpl<CategoryDao, CategoryEn
             CategoryMergeParentDTO categoryMergeParentDTO = new CategoryMergeParentDTO();
             BeanUtils.copyProperties(t, categoryMergeParentDTO);
             categoryMergeParentDTO.setParentName(idToNameMap.getOrDefault(t.getParentCid(), StringUtils.EMPTY));
+            categoryMergeParentDTO.setCatId(String.valueOf(t.getCatId()));
+            categoryMergeParentDTO.setParentCid(String.valueOf(t.getParentCid()));
             return categoryMergeParentDTO;
         }).toList();
         return new PageData<>(pageData.getTotal(), page, limit, list);
@@ -110,7 +113,8 @@ public class CategoryServiceImpl extends CrudServiceImpl<CategoryDao, CategoryEn
     public Map<Long, String> queryCatIdToNameMap() {
         Map<Long, String> result = new HashMap<>();
         RMap<Long, String> map = redissonClient.getMap(ConstantRedis.PRODUCT_CATEGORY_ID_TO_NAME_MAP);
-        map.readAllMapAsync().thenAcceptAsync(result::putAll);
+        CompletionStage<Void> voidCompletionStage = map.readAllMapAsync().thenAcceptAsync(result::putAll);
+        voidCompletionStage.toCompletableFuture().join();
         if (!result.isEmpty()) {
             return result;
         }
@@ -136,6 +140,16 @@ public class CategoryServiceImpl extends CrudServiceImpl<CategoryDao, CategoryEn
         }
         // 判断，如果父分类下存在子分类，就不允许删除
         // ...
+        QueryWrapper<CategoryEntity> wrapper = new QueryWrapper<>();
+        wrapper.select("DISTINCT parent_cid");
+        wrapper.in("parent_cid", ids);
+
+        Set<Long> parentCids = baseDao.selectList(wrapper).stream().map(CategoryEntity::getParentCid).collect(Collectors.toSet());
+        // 判断当前元素
+        ids = ids.stream().filter(id -> !parentCids.contains(id)).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(ids)) {
+            return 0;
+        }
         int result = baseDao.deleteByIds(ids);
         if (result > 0) {
             RMap<Long, String> map = redissonClient.getMap(ConstantRedis.PRODUCT_CATEGORY_ID_TO_NAME_MAP);
@@ -149,17 +163,21 @@ public class CategoryServiceImpl extends CrudServiceImpl<CategoryDao, CategoryEn
     public Result<String> addCategory(CategoryPost categoryPost) {
         Map<Long, String> result = new HashMap<>();
         RMap<Long, String> map = redissonClient.getMap(ConstantRedis.PRODUCT_CATEGORY_ID_TO_NAME_MAP);
-        map.readAllMapAsync().thenAcceptAsync(result::putAll);
+        CompletionStage<Void> voidCompletionStage = map.readAllMapAsync().thenAcceptAsync(result::putAll);
+        voidCompletionStage.toCompletableFuture().join();
         Set<String> names = new HashSet<>(result.values());
         if (names.contains(categoryPost.getName())) {
             return new Result<String>().error(ErrorCode.PARAMETER_ERROR, "重复名称");
         }
-        if (!result.containsKey(categoryPost.getParentCid())) {
+        if (Objects.isNull(categoryPost.getParentCid()) || !result.containsKey(Long.valueOf(categoryPost.getParentCid()))) {
             return new Result<String>().error(ErrorCode.PARAMETER_ERROR, "无效父类信息");
         }
+        CategoryEntity parentEntity = baseDao.selectById(categoryPost.getParentCid());
         CategoryEntity categoryEntity = new CategoryEntity(categoryPost);
+        categoryEntity.setCatLevel(Objects.isNull(parentEntity) ? 0 : parentEntity.getCatLevel() + 1);
         int insert = baseDao.insert(categoryEntity);
         if (insert > 0) {
+            map.fastPut(categoryEntity.getCatId(), categoryEntity.getName());
             return new Result<String>().ok(null);
         } else {
             return new Result<String>().error("新增失败, 请稍后再试");
@@ -174,17 +192,21 @@ public class CategoryServiceImpl extends CrudServiceImpl<CategoryDao, CategoryEn
         }
         Map<Long, String> result = new HashMap<>();
         RMap<Long, String> map = redissonClient.getMap(ConstantRedis.PRODUCT_CATEGORY_ID_TO_NAME_MAP);
-        map.readAllMapAsync().thenAcceptAsync(result::putAll);
+        CompletionStage<Void> voidCompletionStage = map.readAllMapAsync().thenAcceptAsync(result::putAll);
+        voidCompletionStage.toCompletableFuture().join();
         Set<String> names = new HashSet<>(result.values());
-        names.remove(result.get(categoryPost.getCatId()));
+        names.remove(result.get(Long.valueOf(categoryPost.getCatId())));
         if (names.contains(categoryPost.getName())) {
             return new Result<String>().error(ErrorCode.PARAMETER_ERROR, "重复名称");
         }
-        if (!result.containsKey(categoryPost.getParentCid())) {
+        if (Objects.isNull(categoryPost.getParentCid()) || !result.containsKey(Long.valueOf(categoryPost.getParentCid()))) {
             return new Result<String>().error(ErrorCode.PARAMETER_ERROR, "无效父类信息");
         }
+        CategoryEntity parentEntity = baseDao.selectById(categoryPost.getParentCid());
+
         CategoryEntity categoryEntity = new CategoryEntity(categoryPost);
-        categoryEntity.setCatId(categoryPost.getCatId());
+        categoryEntity.setCatId(Long.valueOf(categoryPost.getCatId()));
+        categoryEntity.setCatLevel(Objects.isNull(parentEntity) ? 0 : parentEntity.getCatLevel() + 1);
         int updateCount = baseDao.updateById(categoryEntity);
         if (updateCount > 0) {
             return new Result<String>().ok(null);

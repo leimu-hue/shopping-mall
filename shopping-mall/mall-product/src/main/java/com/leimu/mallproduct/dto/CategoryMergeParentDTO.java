@@ -16,13 +16,13 @@ import java.util.Date;
 public class CategoryMergeParentDTO {
 
     @SchemaProperty(name = "分类id")
-    private Long catId;
+    private String catId;
 
     @SchemaProperty(name = "分类名称")
     private String name;
 
     @SchemaProperty(name = "父分类id")
-    private Long parentCid;
+    private String parentCid;
 
     @SchemaProperty(name = "父分类名称")
     private String parentName;

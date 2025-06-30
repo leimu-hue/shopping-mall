@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class CategoryPost {
 
     @SchemaProperty(name = "分类id")
-    private Long catId;
+    private String catId;
 
     @SchemaProperty(name = "分类名称")
     @NotBlank(message = "分类名称不能为空")
@@ -21,7 +21,7 @@ public class CategoryPost {
 
     @SchemaProperty(name = "父分类id")
     @NotNull(message = "父分类id不能为空")
-    private Long parentCid;
+    private String parentCid;
 
     @SchemaProperty(name = "层级")
     private Integer catLevel;

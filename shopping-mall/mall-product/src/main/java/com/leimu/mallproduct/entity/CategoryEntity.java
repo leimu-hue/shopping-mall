@@ -2,12 +2,14 @@ package com.leimu.mallproduct.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.leimu.mallproduct.post.CategoryPost;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * 商品三级分类
@@ -40,6 +42,7 @@ public class CategoryEntity {
     /**
      * 是否显示[0-不显示，1显示]
      */
+    @TableLogic(value = "1", delval = "0")
 	private Integer showStatus;
     /**
      * 排序
@@ -62,7 +65,11 @@ public class CategoryEntity {
 
     public CategoryEntity(CategoryPost categoryPost) {
         this.name = categoryPost.getName();
-        this.parentCid = categoryPost.getParentCid();
+        if (Objects.isNull(categoryPost.getParentCid())) {
+            this.parentCid = 0L;
+        } else {
+            this.parentCid = Long.valueOf(categoryPost.getParentCid());
+        }
         this.catLevel = categoryPost.getCatLevel();
         this.showStatus = categoryPost.getShowStatus();
         this.sort = categoryPost.getSort();

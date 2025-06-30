@@ -18,18 +18,10 @@ export function listCategoryTree(query) {
   })
 }
 
-// 查询商品分类详细
-export function getCategory(categoryId) {
-  return request({
-    url: '/mall-product/product/category/' + categoryId,
-    method: 'get'
-  })
-}
-
 // 新增商品分类
 export function addCategory(data) {
   return request({
-    url: '/mall-product/product/category',
+    url: '/mall-product/product/category/add',
     method: 'post',
     data: data
   })
@@ -38,42 +30,17 @@ export function addCategory(data) {
 // 修改商品分类
 export function updateCategory(data) {
   return request({
-    url: '/mall-product/product/category',
+    url: '/mall-product/product/category/update',
     method: 'put',
     data: data
   })
 }
 
 // 删除商品分类
-export function delCategory(categoryId) {
+export function delCategory(categoryIds) {
   return request({
-    url: '/mall-product/product/category/' + categoryId,
-    method: 'delete'
+    url: '/mall-product/product/category/delete',
+    method: 'delete',
+    data: categoryIds
   })
 }
-
-// 获取分类树形选择数据
-export function getCategoryTreeSelect() {
-  return request({
-    url: '/mall-product/product/category/tree-select',
-    method: 'get'
-  })
-}
-
-// 检查分类名称是否唯一
-export function checkCategoryNameUnique(data) {
-  return request({
-    url: '/mall-product/product/category/check-name',
-    method: 'post',
-    data: data
-  })
-}
-
-// 获取分类列表（包含父分类名称）
-export function listCategoryWithParent(query) {
-  return request({
-    url: '/mall-product/product/category/list-with-parent',
-    method: 'get',
-    params: query
-  })
-} 

@@ -22,9 +22,6 @@
                 <el-button type="primary" plain icon="Plus" @click="handleAdd">新增</el-button>
             </el-col>
             <el-col :span="1.5">
-                <el-button type="success" plain icon="Edit" :disabled="single" @click="handleUpdate">修改</el-button>
-            </el-col>
-            <el-col :span="1.5">
                 <el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete">删除</el-button>
             </el-col>
         </el-row>
@@ -70,9 +67,11 @@
         <el-dialog :title="title" v-model="open" width="600px" append-to-body>
             <el-form ref="categoryRef" :model="form" :rules="rules" label-width="100px">
                 <el-form-item label="上级分类" prop="parentId">
-                    <el-tree-select v-model="form.parentId" :data="categoryTreeData"
-                        :props="{ value: 'catId', label: 'name', children: 'children' }" placeholder="请选择上级分类" clearable
-                        check-strictly :render-after-expand="false" style="width: 100%" />
+                    <el-tree-select v-model="form.parentId" :data="categoryTreeData" :props="{
+                        value: 'catId', label: 'name', children: 'children', hasChildren: (data) => {
+                            return data.children && data.children.length > 0;
+                        }
+                    }" placeholder="请选择上级分类" clearable check-strictly :render-after-expand="false" style="width: 100%" />
                 </el-form-item>
                 <el-form-item label="分类名称" prop="categoryName">
                     <el-input v-model="form.categoryName" placeholder="请输入分类名称" />
@@ -98,7 +97,7 @@
 </template>
 
 <script setup name="category">
-import { ref, reactive, onMounted, computed, watch } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { listCategory, listCategoryTree, delCategory, addCategory, updateCategory } from '@/api/product/category'
 import { formatDate } from "@/utils/ruoyi.js"
@@ -169,51 +168,94 @@ function getList() {
     })
 }
 
-// 取消按钮
-function cancel() {
-    open.value = false
-    reset()
-}
-
-// 表单重置
-function reset() {
-    form.categoryId = undefined
-    form.categoryName = ''
-    form.description = ''
-    form.sortOrder = 0
-    form.status = '1'
-    form.parentId = 0
-}
-
-/** 搜索按钮操作 */
-function handleQuery() {
-    queryParams.page = 1
-    getList()
-}
-
-/** 重置按钮操作 */
-function resetQuery() {
-    queryParams.categoryName = ''
-    queryParams.status = ''
-    handleQuery()
-}
 
 // 多选框选中数据
 function handleSelectionChange(selection) {
-    ids.value = selection.map(item => item.categoryId)
+    ids.value = selection.map(item => item.catId)
     single.value = selection.length != 1
     multiple.value = !selection.length
 }
 
-/** 新增按钮操作 */
-function handleAdd(row) {
-    reset()
-    if (row) {
-        // 添加子分类
-        form.parentId = row.categoryId
+/** 提交按钮 */
+function submitForm() {
+    console.log(form)
+    if (!form.categoryName) {
+        ElMessage.error('请输入分类名称')
+        return
     }
+
+    // 检查是否选择自己作为父分类
+    if (form.categoryId && form.parentId === form.categoryId) {
+        ElMessage.error('不能选择自己作为父分类')
+        return
+    }
+
+    if (form.categoryId) {
+        // 修改
+        const categoryData = {
+            catId: form.categoryId,
+            name: form.categoryName,
+            sort: form.sortOrder,
+            showStatus: form.status,
+            parentCid: form.parentId
+        }
+        updateCategory(categoryData).then(res => {
+            ElMessage.success('修改成功')
+            open.value = false
+            getList()
+        }).catch(err => {
+            ElMessage.error('修改失败')
+        })
+    } else {
+        // 新增
+        const categoryData = {
+            name: form.categoryName,
+            sort: form.sortOrder,
+            showStatus: form.status,
+            parentCid: form.parentId
+        }
+        addCategory(categoryData).then(res => {
+            ElMessage.success('新增成功')
+            open.value = false
+            getList()
+        }).catch(err => {
+            ElMessage.error('新增失败')
+        })
+    }
+}
+
+/** 删除按钮操作 */
+function handleDelete(row) {
+    const categoryIds = row?.catId || ids.value
+    const categoryName = row?.name || '选中的分类'
+
+    ElMessageBox.confirm(`是否确认删除商品分类"${categoryName}"？`, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        const deleteIds = Array.isArray(categoryIds) ? categoryIds : [categoryIds]
+        delCategory(deleteIds).then((res) => {
+
+            ElMessage.success('删除成功')
+            getList()
+        }).catch(err => {
+            ElMessage.error('删除失败')
+        })
+    }).catch(() => { })
+}
+
+/** 新增按钮操作 */
+function handleAdd() {
+    reset()
     open.value = true
-    title.value = row ? `添加子分类 - ${row.categoryName}` : "添加商品分类"
+    title.value = "添加商品分类"
+}
+
+// 取消按钮
+function cancel() {
+    open.value = false
+    reset()
 }
 
 /** 修改按钮操作 */
@@ -236,80 +278,6 @@ function handleUpdate(row) {
         title.value = "修改商品分类"
     }
 }
-
-/** 提交按钮 */
-function submitForm() {
-    if (!form.categoryName) {
-        ElMessage.error('请输入分类名称')
-        return
-    }
-
-    // 检查是否选择自己作为父分类
-    if (form.categoryId && form.parentId === form.categoryId) {
-        ElMessage.error('不能选择自己作为父分类')
-        return
-    }
-
-    if (form.categoryId) {
-        // 修改
-        const categoryData = {
-            categoryId: form.categoryId,
-            categoryName: form.categoryName,
-            description: form.description,
-            sortOrder: form.sortOrder,
-            status: form.status,
-            parentId: form.parentId
-        }
-
-        updateCategory(categoryData).then(res => {
-            ElMessage.success('修改成功')
-            open.value = false
-            getList()
-        }).catch(err => {
-            ElMessage.error('修改失败')
-        })
-    } else {
-        // 新增
-        const categoryData = {
-            categoryName: form.categoryName,
-            description: form.description,
-            sortOrder: form.sortOrder,
-            status: form.status,
-            parentId: form.parentId
-        }
-
-        addCategory(categoryData).then(res => {
-            ElMessage.success('新增成功')
-            open.value = false
-            getList()
-        }).catch(err => {
-            ElMessage.error('新增失败')
-        })
-    }
-}
-
-/** 删除按钮操作 */
-function handleDelete(row) {
-    const categoryIds = row?.catId || ids.value
-    const categoryName = row?.name || '选中的分类'
-
-    ElMessageBox.confirm(`是否确认删除商品分类"${categoryName}"？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-    }).then(() => {
-        const deleteIds = Array.isArray(categoryIds) ? categoryIds : [categoryIds]
-
-        // 批量删除
-        Promise.all(deleteIds.map(id => delCategory(id))).then(() => {
-            ElMessage.success('删除成功')
-            getList()
-        }).catch(err => {
-            ElMessage.error('删除失败')
-        })
-    }).catch(() => { })
-}
-
 // 分页处理
 function handleSizeChange(val) {
     queryParams.limit = val
@@ -319,6 +287,29 @@ function handleSizeChange(val) {
 function handleCurrentChange(val) {
     queryParams.page = val
     getList()
+}
+
+/** 搜索按钮操作 */
+function handleQuery() {
+    queryParams.page = 1
+    getList()
+}
+
+/** 重置按钮操作 */
+function resetQuery() {
+    queryParams.categoryName = ''
+    queryParams.status = ''
+    handleQuery()
+}
+
+// 表单重置
+function reset() {
+    form.categoryId = undefined
+    form.categoryName = ''
+    form.description = ''
+    form.sortOrder = 0
+    form.status = '1'
+    form.parentId = "0"
 }
 
 watch(open, (newValue) => {

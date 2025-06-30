@@ -31,13 +31,13 @@ public class CategoryDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @SchemaProperty(name = "分类id")
-    private Long catId;
+    private String catId;
 
     @SchemaProperty(name = "分类名称")
     private String name;
 
     @SchemaProperty(name = "父分类id")
-    private Long parentCid;
+    private String parentCid;
 
     @SchemaProperty(name = "层级")
     private Integer catLevel;
@@ -65,13 +65,15 @@ public class CategoryDTO implements Serializable {
 
     public CategoryDTO(CategoryEntity categoryEntity) {
         BeanUtils.copyProperties(categoryEntity, this);
+        this.catId = String.valueOf(categoryEntity.getCatId());
+        this.parentCid = String.valueOf(categoryEntity.getParentCid());
     }
 
     public CategoryDTO createDefault() {
-        this.catId = 0L;
+        this.catId = "0";
         this.name = "全部分类";
         this.sort = 0;
-        this.parentCid = 0L;
+        this.parentCid = "0";
         this.showStatus = 1;
         this.children = new ArrayList<>();
         return this;
