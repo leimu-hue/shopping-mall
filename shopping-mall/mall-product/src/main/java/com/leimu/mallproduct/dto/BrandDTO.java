@@ -1,8 +1,11 @@
 package com.leimu.mallproduct.dto;
 
+import com.leimu.mallproduct.entity.BrandEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.SchemaProperty;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.beans.BeanUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -16,12 +19,13 @@ import java.io.Serializable;
  */
 @Data
 @Schema(name = "品牌")
+@NoArgsConstructor
 public class BrandDTO implements Serializable {
     @Serial
 	private static final long serialVersionUID = 1L;
 
 	@SchemaProperty(name = "品牌id")
-	private Long brandId;
+	private String brandId;
 
 	@SchemaProperty(name = "品牌名")
 	private String name;
@@ -41,5 +45,9 @@ public class BrandDTO implements Serializable {
 	@SchemaProperty(name = "排序")
 	private Integer sort;
 
+	public BrandDTO(BrandEntity brand) {
+		BeanUtils.copyProperties(brand, this);
+		this.brandId = String.valueOf(brand.getBrandId());
+	}
 
 }
