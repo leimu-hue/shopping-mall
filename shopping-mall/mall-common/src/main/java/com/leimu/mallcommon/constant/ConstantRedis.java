@@ -10,4 +10,5 @@ public interface ConstantRedis {
      */
     String PRODUCT_CATEGORY_ID_TO_NAME_MAP = "PRODUCT_CATEGORY_ID_TO_NAME_MAP";
 
+    String SYSTEM_OSS_CONFIG = "SYSTEM_OSS_CONFIG";
 }
