@@ -146,9 +146,9 @@ const rules = {
     categoryName: [
         { required: true, message: "分类名称不能为空", trigger: "blur" },
         {
-            min: 3,
+            min: 2,
             max: 40,
-            message: "分类名称长度需在 3 到 40 个字符之间",
+            message: "分类名称长度需在 2 到 40 个字符之间",
             trigger: "blur",
         },
     ],
@@ -196,7 +196,6 @@ function handleSelectionChange(selection) {
 
 /** 提交按钮 */
 async function submitForm() {
-    console.log(categoryRef);
     await categoryRef.value.validate((valid, fields) => {
         if (!valid) {
             if (fields) {
@@ -215,7 +214,6 @@ async function submitForm() {
             ElMessage.error("不能选择自己作为父分类");
             return;
         }
-
         if (form.categoryId) {
             // 修改
             const categoryData = {
@@ -225,15 +223,15 @@ async function submitForm() {
                 showStatus: form.status,
                 parentCid: form.parentId,
             };
-            updateCategory(categoryData)
-                .then((res) => {
+            updateCategory(categoryData).then((res) => {
+                if (res.code == 0) {
                     ElMessage.success("修改成功");
                     open.value = false;
                     getList();
-                })
-                .catch((err) => {
-                    ElMessage.error("修改失败");
-                });
+                } else {
+                    ElMessage.error("修改失败: " + res.msg);
+                }
+            });
         } else {
             // 新增
             const categoryData = {
@@ -242,15 +240,15 @@ async function submitForm() {
                 showStatus: form.status,
                 parentCid: form.parentId,
             };
-            addCategory(categoryData)
-                .then((res) => {
+            addCategory(categoryData).then((res) => {
+                if (res.code == 0) {
                     ElMessage.success("新增成功");
                     open.value = false;
                     getList();
-                })
-                .catch((err) => {
-                    ElMessage.error("新增失败");
-                });
+                } else {
+                    ElMessage.error("修改失败: " + res.msg);
+                }
+            });
         }
     });
 }
