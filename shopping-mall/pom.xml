@@ -66,6 +66,10 @@
         <micrometer-tracing-bridge-brave>1.5.0</micrometer-tracing-bridge-brave>
         <zipkin-reporter-brave>3.4.0</zipkin-reporter-brave>
         <mybatis-plus-jsqlparser>3.5.12</mybatis-plus-jsqlparser>
+        <jaxb-api>2.3.1</jaxb-api>
+        <activation>1.1.1</activation>
+        <jaxb-runtime>2.3.3</jaxb-runtime>
+        <aliyun-sdk-oss>3.17.4</aliyun-sdk-oss>
     </properties>
 
     <!-- 添加依赖管理 -->
@@ -266,6 +270,27 @@
                 <groupId>io.zipkin.reporter2</groupId>
                 <artifactId>zipkin-reporter-brave</artifactId>
                 <version>${zipkin-reporter-brave}</version>
+            </dependency>
+            <!-- 引入阿里云oss操作  -->
+            <dependency>
+                <groupId>javax.xml.bind</groupId>
+                <artifactId>jaxb-api</artifactId>
+                <version>${jaxb-api}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.activation</groupId>
+                <artifactId>activation</artifactId>
+                <version>${activation}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jaxb</groupId>
+                <artifactId>jaxb-runtime</artifactId>
+                <version>${jaxb-runtime}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aliyun.oss</groupId>
+                <artifactId>aliyun-sdk-oss</artifactId>
+                <version>${aliyun-sdk-oss}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
