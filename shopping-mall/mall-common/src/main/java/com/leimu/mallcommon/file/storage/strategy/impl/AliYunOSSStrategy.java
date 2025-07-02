@@ -22,8 +22,17 @@ public class AliYunOSSStrategy extends AbstractFileUploadStrategy {
     private static final Object lock = new Object();
 
     @Override
+    public void init(FileStorageConfig config) {
+        createOssClient(config);
+    }
+
+    @Override
     public String getFileUrl(String filePath, FileStorageConfig config) {
-        return config.getEndpoint() + "/" + config.getBucketName() + "/" + filePath;
+        if (filePath.startsWith("https://")) {
+            return filePath;
+        }
+        return "https://" + config.getBucketName() + "." + config.getEndpoint().replace("https://", "")
+                + "/" + filePath;
     }
 
     @Override

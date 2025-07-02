@@ -11,6 +11,8 @@ import java.util.UUID;
 
 public abstract class AbstractFileUploadStrategy implements FileUploadStrategy {
 
+    public abstract void init(FileStorageConfig config);
+
     /**
      * 生成唯一文件名
      *

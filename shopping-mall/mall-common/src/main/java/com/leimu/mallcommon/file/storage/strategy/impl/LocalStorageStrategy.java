@@ -13,6 +13,14 @@ import java.io.InputStream;
 @Service(value = "local")
 public class LocalStorageStrategy extends AbstractFileUploadStrategy {
 
+
+    @Override
+    public void init(FileStorageConfig config) {
+        if (!new File(config.getLocalPath()).exists()) {
+            new File(config.getLocalPath()).mkdirs();
+        }
+    }
+
     @Override
     protected UploadResult doUpload(InputStream inputStream, String fileName, String directory, FileStorageConfig config) {
         try {
