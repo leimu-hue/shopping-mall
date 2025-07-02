@@ -19,4 +19,6 @@ public interface FileUploadStrategy {
     String getFileUrl(String filePath, FileStorageConfig config);
 
     FileStorageTypeEnum getStorageType();
+
+    void shutdown();
 }

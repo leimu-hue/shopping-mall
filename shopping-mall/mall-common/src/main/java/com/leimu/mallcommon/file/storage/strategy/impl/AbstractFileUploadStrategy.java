@@ -13,6 +13,7 @@ public abstract class AbstractFileUploadStrategy implements FileUploadStrategy {
 
     /**
      * 生成唯一文件名
+     *
      * @param originalFileName 原始文件名
      * @return 生成的唯一文件名
      */
@@ -38,6 +39,10 @@ public abstract class AbstractFileUploadStrategy implements FileUploadStrategy {
             return new UploadResult(false, "文件不存在");
         }
         return doUpload(file.getInputStream(), generateFileName(file.getName()), directory, config);
+    }
+
+    @Override
+    public void shutdown() {
     }
 
     protected abstract UploadResult doUpload(InputStream inputStream, String fileName, String directory, FileStorageConfig config);

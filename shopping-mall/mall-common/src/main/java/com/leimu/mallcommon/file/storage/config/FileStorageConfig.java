@@ -17,6 +17,8 @@ public class FileStorageConfig {
 
     private String endpoint;
 
+    private String region;
+
     private String accessKeyId;
 
     private String accessKeySecret;
@@ -32,6 +34,7 @@ public class FileStorageConfig {
         this.accessKeySecret = "";
         this.bucketName = "";
         this.localPath = "";
+        this.region = "";
     }
 
     public String verify() {
