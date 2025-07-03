@@ -12,6 +12,8 @@ public interface FileUploadStrategy {
 
     UploadResult upload(File file, String directory, FileStorageConfig config) throws IOException;
 
+    String generatePresignedUrl(String filePath, String fileType, FileStorageConfig config);
+
     UploadResult upload(MultipartFile file, String directory, FileStorageConfig config) throws IOException;
 
     boolean delete(String filePath, FileStorageConfig config);

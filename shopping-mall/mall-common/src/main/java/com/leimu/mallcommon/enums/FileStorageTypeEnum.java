@@ -20,4 +20,13 @@ public enum FileStorageTypeEnum {
 
     private final String name;
 
+    public static FileStorageTypeEnum getFileStorageTypeEnum(String name) {
+        for (FileStorageTypeEnum fileStorageTypeEnum : FileStorageTypeEnum.values()) {
+            if (fileStorageTypeEnum.getName().equals(name)) {
+                return fileStorageTypeEnum;
+            }
+        }
+        return null;
+    }
+
 }

@@ -1,25 +1,13 @@
 <template>
   <div class="component-upload-image">
-    <el-upload
-      multiple
-      :disabled="disabled"
-      :action="uploadImgUrl"
-      list-type="picture-card"
-      :on-success="handleUploadSuccess"
-      :before-upload="handleBeforeUpload"
-      :data="data"
-      :limit="limit"
-      :on-error="handleUploadError"
-      :on-exceed="handleExceed"
-      ref="imageUpload"
-      :before-remove="handleDelete"
-      :show-file-list="true"
-      :headers="headers"
-      :file-list="fileList"
-      :on-preview="handlePictureCardPreview"
-      :class="{ hide: fileList.length >= limit }"
-    >
-      <el-icon class="avatar-uploader-icon"><plus /></el-icon>
+    <el-upload multiple :disabled="disabled" :action="uploadImgUrl" list-type="picture-card" :method="method"
+      :on-success="handleUploadSuccess" :before-upload="handleBeforeUpload" :data="data" :limit="limit"
+      :on-error="handleUploadError" :on-exceed="handleExceed" ref="imageUpload" :before-remove="handleDelete"
+      :show-file-list="true" :headers="headers" :file-list="fileList" :on-preview="handlePictureCardPreview"
+      :class="{ hide: fileList.length >= limit }">
+      <el-icon class="avatar-uploader-icon">
+        <plus />
+      </el-icon>
     </el-upload>
     <!-- 上传提示 -->
     <div class="el-upload__tip" v-if="showTip && !disabled">
@@ -33,16 +21,8 @@
       的文件
     </div>
 
-    <el-dialog
-      v-model="dialogVisible"
-      title="预览"
-      width="800px"
-      append-to-body
-    >
-      <img
-        :src="dialogImageUrl"
-        style="display: block; max-width: 100%; margin: 0 auto"
-      />
+    <el-dialog v-model="dialogVisible" title="预览" width="800px" append-to-body>
+      <img :src="dialogImageUrl" style="display: block; max-width: 100%; margin: 0 auto" />
     </el-dialog>
   </div>
 </template>
@@ -51,6 +31,8 @@
 import { getToken } from "@/utils/auth"
 import { isExternal } from "@/utils/validate"
 import Sortable from 'sortablejs'
+import { getGenerateSignatureUrl } from "@/api/system/oss/index.js"
+import { parseTime, generateUUID } from '@/utils/ruoyi'
 
 const props = defineProps({
   modelValue: [String, Object, Array],
@@ -92,6 +74,14 @@ const props = defineProps({
   drag: {
     type: Boolean,
     default: true
+  },
+  oss: {
+    type: Boolean,
+    default: false
+  },
+  method: {
+    type: String,
+    default: "POST"
   }
 })
 
@@ -103,11 +93,23 @@ const dialogImageUrl = ref("")
 const dialogVisible = ref(false)
 const baseUrl = import.meta.env.VITE_APP_BASE_API
 const uploadImgUrl = ref(import.meta.env.VITE_APP_BASE_API + props.action) // 上传的图片服务器地址
-const headers = ref({ Authorization: "Bearer " + getToken() })
+// 保留一个备份数据
+const uploadImageUrlBack = uploadImgUrl.value;
+
+const headers = ref({
+  Authorization: "Bearer " + getToken(),
+  "Content-Type": "",
+  "x-oss-object-acl": "public-read"
+})
 const fileList = ref([])
 const showTip = computed(
   () => props.isShowTip && (props.fileType || props.fileSize)
-)
+);
+const ossUploadValue = ref({
+  name: "",
+  url: ""
+})
+
 
 watch(() => props.modelValue, val => {
   if (val) {
@@ -128,10 +130,10 @@ watch(() => props.modelValue, val => {
     fileList.value = []
     return []
   }
-},{ deep: true, immediate: true })
+}, { deep: true, immediate: true })
 
 // 上传前loading加载
-function handleBeforeUpload(file) {
+async function handleBeforeUpload(file) {
   let isImg = false
   if (props.fileType.length) {
     let fileExtension = ""
@@ -162,26 +164,63 @@ function handleBeforeUpload(file) {
     }
   }
   proxy.$modal.loading("正在上传图片，请稍候...")
+  // 开始从其中获取到oss验签url
+  if (props.oss) {
+    // 开始获取验签地址
+    const value = parseTime(new Date(), "{y}{m}{d}");
+    let success = false;
+    let fileName = value + "/" + generateUUID(file.name);
+    headers.value["Content-Type"] = file.type;
+    await getGenerateSignatureUrl(fileName, file.type).then(res => {
+      if (res.code == 200) {
+        uploadImgUrl.value = res.data;
+        ossUploadValue.value.name = fileName;
+        const queryIndex = res.data.indexOf('?');
+        ossUploadValue.value.url = queryIndex === -1 ? res.data
+          : res.data.substring(0, queryIndex);
+        success = true;
+      }
+    }).catch(() => {
+      proxy.$modal.closeLoading()
+      proxy.$modal.msgError("无法获取OSS验签URL, 上传失败")
+      success = true;
+    })
+    if (!success) {
+      proxy.$modal.closeLoading()
+      proxy.$modal.msgError("无法获取OSS验签URL, 上传失败")
+      return false;
+    }
+  }
   number.value++
 }
 
 // 文件个数超出
 function handleExceed() {
   proxy.$modal.msgError(`上传文件数量不能超过 ${props.limit} 个!`)
+  uploadImgUrl.value = uploadImageUrlBack;
 }
 
 // 上传成功回调
 function handleUploadSuccess(res, file) {
-  if (res.code === 200) {
-    uploadList.value.push({ name: res.fileName, url: res.fileName })
+  if (props.oss) {
+    uploadList.value.push({
+      name: ossUploadValue.value.name,
+      url: ossUploadValue.value.url
+    })
     uploadedSuccessfully()
   } else {
-    number.value--
-    proxy.$modal.closeLoading()
-    proxy.$modal.msgError(res.msg)
-    proxy.$refs.imageUpload.handleRemove(file)
-    uploadedSuccessfully()
+    if (res.code === 200) {
+      uploadList.value.push({ name: res.fileName, url: res.fileName })
+      uploadedSuccessfully()
+    } else {
+      number.value--
+      proxy.$modal.closeLoading()
+      proxy.$modal.msgError(res.msg)
+      proxy.$refs.imageUpload.handleRemove(file)
+      uploadedSuccessfully()
+    }
   }
+  uploadImgUrl.value = uploadImageUrlBack;
 }
 
 // 删除图片
@@ -203,12 +242,14 @@ function uploadedSuccessfully() {
     emit("update:modelValue", listToString(fileList.value))
     proxy.$modal.closeLoading()
   }
+  uploadImgUrl.value = uploadImageUrlBack;
 }
 
 // 上传失败
 function handleUploadError() {
   proxy.$modal.msgError("上传图片失败")
   proxy.$modal.closeLoading()
+  uploadImgUrl.value = uploadImageUrlBack;
 }
 
 // 预览
@@ -249,10 +290,10 @@ onMounted(() => {
 <style scoped lang="scss">
 // .el-upload--picture-card 控制加号部分
 :deep(.hide .el-upload--picture-card) {
-    display: none;
+  display: none;
 }
 
 :deep(.el-upload.el-upload--picture-card.is-disabled) {
   display: none !important;
-} 
+}
 </style>

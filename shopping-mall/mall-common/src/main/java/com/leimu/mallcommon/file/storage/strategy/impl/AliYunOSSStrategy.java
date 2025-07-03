@@ -13,6 +13,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
+import java.net.URL;
+import java.util.Date;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Service(value = "aliYun")
 public class AliYunOSSStrategy extends AbstractFileUploadStrategy {
@@ -24,6 +28,18 @@ public class AliYunOSSStrategy extends AbstractFileUploadStrategy {
     @Override
     public void init(FileStorageConfig config) {
         createOssClient(config);
+    }
+
+    @Override
+    public String generatePresignedUrl(String filePath, String fileType, FileStorageConfig config) {
+        createOssClient(config);
+        GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(config.getBucketName(), filePath, HttpMethod.PUT);
+        Date expiration = new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(20));
+        request.setExpiration(expiration);
+        request.setContentType(Optional.ofNullable(fileType).orElse("image/png"));
+        request.getHeaders().put("x-oss-object-acl", "public-read");
+        URL signedUrl = ossClient.generatePresignedUrl(request);
+        return signedUrl.toString();
     }
 
     @Override

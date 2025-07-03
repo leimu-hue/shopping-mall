@@ -14,3 +14,14 @@ export function setOssConfig(data) {
         data: data
     })
 }
+
+export function getGenerateSignatureUrl(fileName, fileType) {
+    return request({
+        url: '/mall-admin/file/upload/get_presigned_url_for_oss_upload',
+        method: 'get',
+        params: {
+            fileName,
+            fileType
+        }
+    })
+}

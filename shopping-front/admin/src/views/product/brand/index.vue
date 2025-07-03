@@ -73,7 +73,7 @@
           <el-input v-model="form.name" />
         </el-form-item>
         <el-form-item label="Logo" prop="logo">
-          <ImageUpload v-model="form.logo" :limit="1" :file-size="2" :file-type="['png', 'jpg', 'jpeg']" />
+          <ImageUpload :method="'PUT'" :oss="true" v-model="form.logo" :limit="1" :file-size="2" :file-type="['png', 'jpg', 'jpeg']" />
         </el-form-item>
         <el-form-item label="介绍" prop="descript">
           <el-input v-model="form.descript" type="textarea" />
@@ -190,7 +190,7 @@ function openDialog(mode, row) {
 function handleSubmit() {
   formRef.value.validate(valid => {
     if (!valid) return
-    if (form.logo) {
+    if (form.logo && !form.logo.startsWith("http")) {
       form.logo = import.meta.env.VITE_APP_BASE_API + form.logo;
     }
     if (dialogMode.value === 'add') {

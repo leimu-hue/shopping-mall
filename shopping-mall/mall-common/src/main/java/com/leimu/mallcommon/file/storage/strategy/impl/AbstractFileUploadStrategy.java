@@ -13,6 +13,11 @@ public abstract class AbstractFileUploadStrategy implements FileUploadStrategy {
 
     public abstract void init(FileStorageConfig config);
 
+    @Override
+    public String generatePresignedUrl(String filePath, String fileType, FileStorageConfig config) {
+        return "";
+    }
+
     /**
      * 生成唯一文件名
      *

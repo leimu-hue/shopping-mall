@@ -56,4 +56,18 @@ public class FileUploadManager {
         return !fileUploadStrategyMap.containsKey(fileStorageTypeEnum.getName());
     }
 
+    public String generatePresinedUrl(FileStorageTypeEnum fileStorageTypeEnum, String filePath, String fileType, FileStorageConfig config) {
+        if (checkUpdateStorage(fileStorageTypeEnum)) {
+            throw new RuntimeException("错误操作类型");
+        }
+        return fileUploadStrategyMap.get(fileStorageTypeEnum.getName()).generatePresignedUrl(filePath, fileType, config);
+    }
+
+    public void shutdown(FileStorageTypeEnum fileStorageTypeEnum) {
+        if (checkUpdateStorage(fileStorageTypeEnum)) {
+            throw new RuntimeException("错误操作类型");
+        }
+        fileUploadStrategyMap.get(fileStorageTypeEnum.getName()).shutdown();
+    }
+
 }

@@ -232,3 +232,14 @@ export function formatDate(dateStr) {
     const date = new Date(dateStr)
     return date.toLocaleDateString()
 }
+
+export function generateUUID(fileName) {
+  const suffix = fileName.split(".").pop();
+  let hash = 0;
+  for (let i = 0; i < fileName.length; i++) {
+    const char = fileName.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // 转换为 32 位整数
+  }
+  return Date.now() + hash.toString(16) + "." + suffix;
+}

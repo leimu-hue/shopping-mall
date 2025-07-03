@@ -1,32 +1,26 @@
 package com.ruoyi.web.controller.system;
 
-import com.leimu.mallcommon.constant.ConstantRedis;
-import com.leimu.mallcommon.enums.FileStorageTypeEnum;
 import com.leimu.mallcommon.file.storage.config.FileStorageConfig;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
-import com.ruoyi.common.core.redis.RedisCache;
 import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.service.FileUploadService;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Objects;
 
 @RestController
 @RequestMapping("/system/fileUpload/config")
 public class SysFileUploadConfigController extends BaseController {
 
-    private final RedisCache redisCache;
+    private final FileUploadService fileUploadService;
 
-    public SysFileUploadConfigController(RedisCache redisCache) {
-        this.redisCache = redisCache;
+    public SysFileUploadConfigController(FileUploadService fileUploadService) {
+        this.fileUploadService = fileUploadService;
     }
 
     @GetMapping("get")
     public AjaxResult get() {
-        FileStorageConfig cacheObject = redisCache.getCacheObject(ConstantRedis.SYSTEM_OSS_CONFIG);
-        if (Objects.isNull(cacheObject)) {
-            cacheObject = new FileStorageConfig(FileStorageTypeEnum.LOCAL.getName());
-        }
+        FileStorageConfig cacheObject = fileUploadService.getFileStorageConfig();
         return AjaxResult.success(cacheObject);
     }
 
@@ -37,7 +31,7 @@ public class SysFileUploadConfigController extends BaseController {
         }
         String verify = fileStorageConfig.verify();
         if (StringUtils.isBlank(verify)) {
-            redisCache.setCacheObject(ConstantRedis.SYSTEM_OSS_CONFIG, fileStorageConfig);
+            fileUploadService.setFileStorageConfig(fileStorageConfig);
             return AjaxResult.success();
         }
         return AjaxResult.error(verify);
